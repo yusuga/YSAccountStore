@@ -20,8 +20,8 @@
 		B84DDD68188D133600DD2DE8 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B84DDD4A188D133600DD2DE8 /* UIKit.framework */; };
 		B84DDD70188D133600DD2DE8 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = B84DDD6E188D133600DD2DE8 /* InfoPlist.strings */; };
 		B84DDD72188D133600DD2DE8 /* YSAccountStoreTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B84DDD71188D133600DD2DE8 /* YSAccountStoreTests.m */; };
-		B84DDD7E188D137F00DD2DE8 /* YSAccountStore.m in Sources */ = {isa = PBXBuildFile; fileRef = B84DDD7D188D137F00DD2DE8 /* YSAccountStore.m */; };
 		B84DDD81188D18F400DD2DE8 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B84DDD80188D18F400DD2DE8 /* ViewController.m */; };
+		B84DDD85188D52AC00DD2DE8 /* YSAccountStore.m in Sources */ = {isa = PBXBuildFile; fileRef = B84DDD84188D52AC00DD2DE8 /* YSAccountStore.m */; };
 		C6A0C8A94EFF421FA0C1BABB /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CB201A5876694C55824B46BA /* libPods.a */; };
 /* End PBXBuildFile section */
 
@@ -54,10 +54,10 @@
 		B84DDD6D188D133600DD2DE8 /* YSAccountStoreTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "YSAccountStoreTests-Info.plist"; sourceTree = "<group>"; };
 		B84DDD6F188D133600DD2DE8 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		B84DDD71188D133600DD2DE8 /* YSAccountStoreTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YSAccountStoreTests.m; sourceTree = "<group>"; };
-		B84DDD7C188D137F00DD2DE8 /* YSAccountStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YSAccountStore.h; sourceTree = "<group>"; };
-		B84DDD7D188D137F00DD2DE8 /* YSAccountStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YSAccountStore.m; sourceTree = "<group>"; };
 		B84DDD7F188D18F400DD2DE8 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		B84DDD80188D18F400DD2DE8 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		B84DDD83188D52AC00DD2DE8 /* YSAccountStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YSAccountStore.h; sourceTree = "<group>"; };
+		B84DDD84188D52AC00DD2DE8 /* YSAccountStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YSAccountStore.m; sourceTree = "<group>"; };
 		CB201A5876694C55824B46BA /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -90,7 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				B84DDD4C188D133600DD2DE8 /* YSAccountStore */,
-				B84DDD7B188D136A00DD2DE8 /* YSAccountStore */,
+				B84DDD82188D52AC00DD2DE8 /* YSAccountStore */,
 				B84DDD6B188D133600DD2DE8 /* YSAccountStoreTests */,
 				B84DDD45188D133500DD2DE8 /* Frameworks */,
 				B84DDD44188D133500DD2DE8 /* Products */,
@@ -162,14 +162,14 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		B84DDD7B188D136A00DD2DE8 /* YSAccountStore */ = {
+		B84DDD82188D52AC00DD2DE8 /* YSAccountStore */ = {
 			isa = PBXGroup;
 			children = (
-				B84DDD7C188D137F00DD2DE8 /* YSAccountStore.h */,
-				B84DDD7D188D137F00DD2DE8 /* YSAccountStore.m */,
+				B84DDD83188D52AC00DD2DE8 /* YSAccountStore.h */,
+				B84DDD84188D52AC00DD2DE8 /* YSAccountStore.m */,
 			);
 			name = YSAccountStore;
-			path = ../../YSAccountStore;
+			path = ../../Classes/YSAccountStore;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -304,8 +304,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B84DDD7E188D137F00DD2DE8 /* YSAccountStore.m in Sources */,
 				B84DDD57188D133600DD2DE8 /* AppDelegate.m in Sources */,
+				B84DDD85188D52AC00DD2DE8 /* YSAccountStore.m in Sources */,
 				B84DDD81188D18F400DD2DE8 /* ViewController.m in Sources */,
 				B84DDD53188D133600DD2DE8 /* main.m in Sources */,
 			);
