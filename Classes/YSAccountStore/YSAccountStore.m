@@ -7,7 +7,7 @@
 //
 
 #import "YSAccountStore.h"
-#import <Reachability/Reachability.h>
+#import <AFNetworking/AFNetworkReachabilityManager.h>
 
 #define kFacebookAppId @"YOUR_FACEBOOK_APPLICATION_ID"
 
@@ -87,7 +87,7 @@
                                                                     Facebookの場合は設定.app内のアカウントのパスワードが入力されていない状態でも起こる */
                                                                 NSLog(@"Error: ACErrorPermissionDenied; error = %@;", error);
                                                                 failureAccess(YSAccountStoreErrorTypePermissionDenied, error);
-                                                            } else if ([Reachability reachabilityForInternetConnection].isReachable &&
+                                                            } else if ([AFNetworkReachabilityManager sharedManager].isReachable &&
                                                                        [[self.accountStore accountsWithAccountType:type] count] == 0) {
                                                                 /* アカウントがゼロ */
                                                                 NSLog(@"Error: account.count == 0; error = %@;", error);
