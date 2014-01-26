@@ -25,8 +25,12 @@ typedef void(^YSAccountStoreFailureAccess)(YSAccountStoreErrorType errorType, NS
 @interface YSAccountStore : NSObject
 
 + (instancetype)shardManager;
-- (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString*)typeId
-                                              successAcess:(YSAccountStoreSuccessAccess)successAccess
-                                             failureAccess:(YSAccountStoreFailureAccess)failureAccess;
+
+- (void)requestAccessToTwitterAccountsWithSuccessAccess:(YSAccountStoreSuccessAccess)successAccess
+                                          failureAccess:(YSAccountStoreFailureAccess)failureAccess;
+
+- (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
+                                              successAccess:(YSAccountStoreSuccessAccess)successAccess
+                                              failureAccess:(YSAccountStoreFailureAccess)failureAccess;
 
 @end

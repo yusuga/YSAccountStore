@@ -9,8 +9,6 @@
 #import "YSAccountStore.h"
 #import <AFNetworking/AFNetworkReachabilityManager.h>
 
-#define kFacebookAppId @"YOUR_FACEBOOK_APPLICATION_ID"
-
 @interface YSAccountStore ()
 
 @property (nonatomic) ACAccountStore *accountStore;
@@ -37,7 +35,29 @@
     return self;
 }
 
-- (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId successAcess:(YSAccountStoreSuccessAccess)successAccess failureAccess:(YSAccountStoreFailureAccess)failureAccess
+- (void)requestAccessToTwitterAccountsWithSuccessAccess:(YSAccountStoreSuccessAccess)successAccess
+                                          failureAccess:(YSAccountStoreFailureAccess)failureAccess
+{
+    [self requestAccessToAccountsWithACAccountTypeIdentifier:ACAccountTypeIdentifierTwitter
+                                                    appIdKey:nil
+                                               successAccess:successAccess
+                                               failureAccess:failureAccess];
+}
+
+- (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
+                                              successAccess:(YSAccountStoreSuccessAccess)successAccess
+                                              failureAccess:(YSAccountStoreFailureAccess)failureAccess
+{
+    [self requestAccessToAccountsWithACAccountTypeIdentifier:ACAccountTypeIdentifierFacebook
+                                                    appIdKey:appIdKey
+                                               successAccess:successAccess
+                                               failureAccess:failureAccess];
+}
+
+- (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId
+                                                  appIdKey:(NSString*)appIdKey
+                                             successAccess:(YSAccountStoreSuccessAccess)successAccess
+                                             failureAccess:(YSAccountStoreFailureAccess)failureAccess
 {
     ACAccountType *type = [self.accountStore accountTypeWithAccountTypeIdentifier:typeId];
     if (type == nil) {
@@ -49,7 +69,7 @@
     if ([typeId isEqualToString:ACAccountTypeIdentifierFacebook]) {
         // Example
         options = @{
-                    ACFacebookAppIdKey : kFacebookAppId,
+                    ACFacebookAppIdKey : appIdKey,
                     ACFacebookAudienceKey : ACFacebookAudienceOnlyMe,
                     ACFacebookPermissionsKey : @[@"email"]
                     };
