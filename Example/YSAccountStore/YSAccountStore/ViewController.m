@@ -29,17 +29,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    
     __weak typeof(self) wself = self;
     
     NSString *acntTypeId = ACAccountTypeIdentifierTwitter;
-    [[YSAccountStore shardManager] requestAccessToAccountsWithACAccountTypeIdentifier:acntTypeId
-                                                                         successAcess:^(NSArray *accounts) {
-                                                                             wself.accounts = accounts;
-                                                                             [wself.tableView reloadData];
-                                                                         } failureAccess:^(YSAccountStoreErrorType errorType, NSError *error) {
-                                                                             [wself showErrorAlertWithACAccountTypeIdentifier:acntTypeId errorType:errorType];
-                                                                         }];
+    [[YSAccountStore shardStore] requestAccessToTwitterAccountsWithSuccessAccess:^(NSArray *accounts) {
+        wself.accounts = accounts;
+        [wself.tableView reloadData];
+    } failureAccess:^(YSAccountStoreErrorType errorType, NSError *error) {
+        [wself showErrorAlertWithACAccountTypeIdentifier:acntTypeId errorType:errorType];
+    }];
 }
 
 - (void)didReceiveMemoryWarning

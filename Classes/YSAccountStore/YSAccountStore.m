@@ -17,14 +17,14 @@
 
 @implementation YSAccountStore
 
-+ (instancetype)shardManager
++ (instancetype)shardStore
 {
-    static id s_sharedManager = nil;
+    static id s_store = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        s_sharedManager = [[YSAccountStore alloc] init];
+        s_store = [[YSAccountStore alloc] init];
     });
-    return s_sharedManager;
+    return s_store;
 }
 
 - (id)init

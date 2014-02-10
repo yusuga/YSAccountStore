@@ -24,7 +24,7 @@ typedef void(^YSAccountStoreFailureAccess)(YSAccountStoreErrorType errorType, NS
 
 @interface YSAccountStore : NSObject
 
-+ (instancetype)shardManager;
++ (instancetype)shardStore;
 
 - (void)requestAccessToTwitterAccountsWithSuccessAccess:(YSAccountStoreSuccessAccess)successAccess
                                           failureAccess:(YSAccountStoreFailureAccess)failureAccess;
