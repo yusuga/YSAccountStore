@@ -17,20 +17,25 @@ typedef enum {
     YSAccountStoreErrorTypePermissionDenied,
 } YSAccountStoreErrorType;
 
-typedef void(^YSAccountStoreSelectedAccount)(ACAccount *account);
-
-typedef void(^YSAccountStoreSuccessAccess)(NSArray *accounts);
-typedef void(^YSAccountStoreFailureAccess)(YSAccountStoreErrorType errorType, NSError *error);
+typedef void(^YSAccountStoreAccessCompletion)(NSArray *accounts, NSError *error);
 
 @interface YSAccountStore : NSObject
 
 + (instancetype)shardStore;
 
-- (void)requestAccessToTwitterAccountsWithSuccessAccess:(YSAccountStoreSuccessAccess)successAccess
-                                          failureAccess:(YSAccountStoreFailureAccess)failureAccess;
+#pragma mark - Simple request
+
+- (void)requestAccessToTwitterAccountsWithCompletion:(YSAccountStoreAccessCompletion)completion;
 
 - (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
-                                              successAccess:(YSAccountStoreSuccessAccess)successAccess
-                                              failureAccess:(YSAccountStoreFailureAccess)failureAccess;
+                                                    options:(NSDictionary*)options
+                                                 completion:(YSAccountStoreAccessCompletion)completion;
+
+#pragma mark -
+
+- (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId
+                                                  appIdKey:(NSString*)appIdKey
+                                                   options:(NSDictionary*)options
+                                                completion:(YSAccountStoreAccessCompletion)completion;
 
 @end

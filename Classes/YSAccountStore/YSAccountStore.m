@@ -9,6 +9,8 @@
 #import "YSAccountStore.h"
 #import <AFNetworking/AFNetworkReachabilityManager.h>
 
+static NSString * const kYSAccountStoreDomain = @"jp.YuSugawara.YSAccountStore";
+
 @interface YSAccountStore ()
 
 @property (nonatomic) ACAccountStore *accountStore;
@@ -35,95 +37,105 @@
     return self;
 }
 
-- (void)requestAccessToTwitterAccountsWithSuccessAccess:(YSAccountStoreSuccessAccess)successAccess
-                                          failureAccess:(YSAccountStoreFailureAccess)failureAccess
+- (void)requestAccessToTwitterAccountsWithCompletion:(YSAccountStoreAccessCompletion)completion
 {
     [self requestAccessToAccountsWithACAccountTypeIdentifier:ACAccountTypeIdentifierTwitter
                                                     appIdKey:nil
-                                               successAccess:successAccess
-                                               failureAccess:failureAccess];
+                                                     options:nil
+                                                  completion:completion];
 }
 
 - (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
-                                              successAccess:(YSAccountStoreSuccessAccess)successAccess
-                                              failureAccess:(YSAccountStoreFailureAccess)failureAccess
+                                                    options:(NSDictionary*)options
+                                              completion:(YSAccountStoreAccessCompletion)completion
 {
     [self requestAccessToAccountsWithACAccountTypeIdentifier:ACAccountTypeIdentifierFacebook
                                                     appIdKey:appIdKey
-                                               successAccess:successAccess
-                                               failureAccess:failureAccess];
+                                                     options:options
+                                                  completion:completion];
 }
 
 - (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId
                                                   appIdKey:(NSString*)appIdKey
-                                             successAccess:(YSAccountStoreSuccessAccess)successAccess
-                                             failureAccess:(YSAccountStoreFailureAccess)failureAccess
+                                                   options:(NSDictionary*)options
+                                             completion:(YSAccountStoreAccessCompletion)completion
 {
-    ACAccountType *type = [self.accountStore accountTypeWithAccountTypeIdentifier:typeId];
-    if (type == nil) {
-        NSLog(@"Error: %s; Unknown type identifier; typeId = %@", __func__, typeId);
-        failureAccess(YSAccountStoreErrorTypeAccountTypeNil, nil);
+    if (completion == NULL) {
+        NSAssert(0, @"completion is NULL");
         return;
     }
-    NSDictionary *options;
+    
+    ACAccountType *type = [self.accountStore accountTypeWithAccountTypeIdentifier:typeId];
+    if (type == nil) {
+        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                   code:YSAccountStoreErrorTypeAccountTypeNil
+                                               userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unknown type identifier: %@", typeId]}]);
+        return;
+    }
+    NSDictionary *defaultOptions;
     if ([typeId isEqualToString:ACAccountTypeIdentifierFacebook]) {
         // Example
-        options = @{
-                    ACFacebookAppIdKey : appIdKey,
+        defaultOptions = @{ACFacebookAppIdKey : appIdKey,
                     ACFacebookAudienceKey : ACFacebookAudienceOnlyMe,
                     ACFacebookPermissionsKey : @[@"email"]
                     };
     }
     
     __weak typeof(self) wself = self;
-    [self.accountStore requestAccessToAccountsWithType:type
-                                               options:options
-                                            completion:^(BOOL granted, NSError *error) {
-                                                /* accountsを操作するのと、-accountsWithAccountType:がメインスレッドでないとaccountType==nilを返すので
-                                                 メインスレッドで実行 */
-                                                dispatch_async(dispatch_get_main_queue(), ^{
-                                                    if (granted) {
-                                                        if (error == nil) {
-                                                            NSArray *accounts = [wself.accountStore accountsWithAccountType:type];
-                                                            if ([accounts count] == 0) {
-                                                                /* アカウントがゼロ */
-                                                                NSLog(@"Error: account.count == 0; error = %@;", error);
-                                                                failureAccess(YSAccountStoreErrorTypeZeroAccount, nil);
-                                                                return ;
-                                                            }
-                                                            NSMutableArray *names = [NSMutableArray arrayWithCapacity:[accounts count]];
-                                                            for (ACAccount *acnt in accounts) {
-                                                                [names addObject:acnt.username];
-                                                            }
-                                                            if (successAccess) successAccess(accounts);
-                                                        } else {
-                                                            NSLog(@"Unexpected error: granted == YES && error != nil; error = %@;", error);
-                                                            failureAccess(YSAccountStoreErrorTypeUnknown ,error);
-                                                        }
-                                                    } else {
-                                                        if (error) {
-                                                            if (error.code == ACErrorPermissionDenied) {
-                                                                /* パーミッションエラー
-                                                                    Facebookの場合は設定.app内のアカウントのパスワードが入力されていない状態でも起こる */
-                                                                NSLog(@"Error: ACErrorPermissionDenied; error = %@;", error);
-                                                                failureAccess(YSAccountStoreErrorTypePermissionDenied, error);
-                                                            } else if ([AFNetworkReachabilityManager sharedManager].isReachable &&
-                                                                       [[self.accountStore accountsWithAccountType:type] count] == 0) {
-                                                                /* アカウントがゼロ */
-                                                                NSLog(@"Error: account.count == 0; error = %@;", error);
-                                                                failureAccess(YSAccountStoreErrorTypeZeroAccount, error);
-                                                            } else {
-                                                                NSLog(@"Unknown error: requestError && account.count > 0; error = %@;", error);
-                                                                failureAccess(YSAccountStoreErrorTypeUnknown, error);
-                                                            }
-                                                        } else {
-                                                            /* アクセスが許可されてない(Twitterへのアクセス禁止) */
-                                                            NSLog(@"Error: Not access privacy; error = %@;", error);
-                                                            failureAccess(YSAccountStoreErrorTypePrivacyIsDisable, error);
-                                                        }
-                                                    }
-                                                });
-                                            }];
+    [self.accountStore requestAccessToAccountsWithType:type options:options ? options : defaultOptions completion:^(BOOL granted, NSError *error) {
+        /* accountsを操作するのと、-accountsWithAccountType:がメインスレッドでないとaccountType==nilを返すので
+         メインスレッドで実行 */
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (granted) {
+                if (error == nil) {
+                    NSArray *accounts = [wself.accountStore accountsWithAccountType:type];
+                    if ([accounts count] == 0) {
+                        /* アカウントがゼロ */
+                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                                   code:YSAccountStoreErrorTypeZeroAccount
+                                                               userInfo:@{NSLocalizedDescriptionKey : @"account.count == 0"}]);
+                        return ;
+                    }
+                    NSMutableArray *names = [NSMutableArray arrayWithCapacity:[accounts count]];
+                    for (ACAccount *acnt in accounts) {
+                        [names addObject:acnt.username];
+                    }
+                    completion(accounts, nil);
+                } else {
+                    completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                               code:YSAccountStoreErrorTypeUnknown
+                                                           userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unexpected error: granted == YES && error != nil; error: %@;", error]}]);
+                }
+            } else {
+                if (error) {
+                    if (error.code == ACErrorPermissionDenied) {
+                        /* パーミッションエラー
+                         Facebookの場合は設定.app内のアカウントのパスワードが入力されていない状態でも起こる */
+                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                                   code:YSAccountStoreErrorTypePermissionDenied
+                                                               userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"error: %@", error]}]);
+                    } else if ([AFNetworkReachabilityManager sharedManager].isReachable &&
+                               [[self.accountStore accountsWithAccountType:type] count] == 0) {
+                        /* アカウントがゼロ */
+                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                                   code:YSAccountStoreErrorTypeZeroAccount
+                                                               userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"account.count == 0; error: %@;", error]}]);
+                    } else {
+                        NSLog(@"Unknown error: requestError && account.count > 0; error = %@;", error);
+                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                                   code:YSAccountStoreErrorTypeUnknown
+                                                               userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unknown error: %@", error]}]);
+                    }
+                } else {
+                    /* アクセスが許可されてない(Twitterへのアクセス禁止) */
+                    NSLog(@"Error: Not access privacy; error = %@;", error);
+                    completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreDomain
+                                                               code:YSAccountStoreErrorTypePrivacyIsDisable
+                                                           userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Not access privacy; error: %@;", error]}]);
+                }
+            }
+        });
+    }];
 }
 
 @end
