@@ -30,14 +30,15 @@
 {
     [super viewDidLoad];
     
-    __weak typeof(self) wself = self;
-    
+    __weak typeof(self) wself = self;    
     NSString *acntTypeId = ACAccountTypeIdentifierTwitter;
-    [[YSAccountStore shardStore] requestAccessToTwitterAccountsWithSuccessAccess:^(NSArray *accounts) {
+    [[YSAccountStore shardStore] requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, NSError *error) {
+        if (error) {
+            [wself showErrorAlertWithACAccountTypeIdentifier:acntTypeId error:error];
+            return ;
+        }
         wself.accounts = accounts;
         [wself.tableView reloadData];
-    } failureAccess:^(YSAccountStoreErrorType errorType, NSError *error) {
-        [wself showErrorAlertWithACAccountTypeIdentifier:acntTypeId errorType:errorType];
     }];
 }
 
@@ -79,7 +80,7 @@
 
 #pragma mark - Error
 
-- (void)showErrorAlertWithACAccountTypeIdentifier:(NSString*)typeId errorType:(YSAccountStoreErrorType)errorType
+- (void)showErrorAlertWithACAccountTypeIdentifier:(NSString*)typeId error:(NSError*)error
 {
     NSString *service;
     if ([ACAccountTypeIdentifierTwitter isEqualToString:typeId]) {
@@ -91,7 +92,7 @@
     }
     
     NSString *errorStr;
-    switch (errorType) {
+    switch (error.code) {
         case YSAccountStoreErrorTypeUnknown:
             errorStr = @"不明なエラー";
             break;
@@ -102,7 +103,7 @@
             errorStr = [NSString stringWithFormat:@"[設定]→[プライバシー]→[%@]がオフ", service];
             break;
         case YSAccountStoreErrorTypeZeroAccount:
-            errorStr = [NSString stringWithFormat:@"[設定]→[%@]内のアカウントが1つも入力されていない", service];
+            errorStr = [NSString stringWithFormat:@"[設定]→[%@]内のアカウントが1つも入力されていません", service];
             break;
         case YSAccountStoreErrorTypePermissionDenied:
             errorStr = @"パーミッションエラー";
