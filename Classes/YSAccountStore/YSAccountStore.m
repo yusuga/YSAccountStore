@@ -9,7 +9,7 @@
 #import "YSAccountStore.h"
 #import <AFNetworking/AFNetworkReachabilityManager.h>
 
-NSString * const kYSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
+NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
 
 @interface YSAccountStore ()
 
