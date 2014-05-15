@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 @import Accounts;
 
+extern NSString * const kYSAccountStoreErrorDomain;
+
 typedef enum {
     YSAccountStoreErrorTypeUnknown,
     YSAccountStoreErrorTypeAccountTypeNil,
