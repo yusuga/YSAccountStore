@@ -67,7 +67,7 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
     
     ACAccountType *type = [self.accountStore accountTypeWithAccountTypeIdentifier:typeId];
     if (type == nil) {
-        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+        completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                    code:YSAccountStoreErrorTypeAccountTypeNil
                                                userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unknown type identifier: %@", typeId]}]);
         return;
@@ -91,7 +91,7 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
                     NSArray *accounts = [wself.accountStore accountsWithAccountType:type];
                     if ([accounts count] == 0) {
                         /* アカウントがゼロ */
-                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+                        completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                                    code:YSAccountStoreErrorTypeZeroAccount
                                                                userInfo:@{NSLocalizedDescriptionKey : @"account.count == 0"}]);
                         return ;
@@ -102,7 +102,7 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
                     }
                     completion(accounts, nil);
                 } else {
-                    completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+                    completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                                code:YSAccountStoreErrorTypeUnknown
                                                            userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unexpected error: granted == YES && error != nil; error: %@;", error]}]);
                 }
@@ -111,25 +111,25 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
                     if (error.code == ACErrorPermissionDenied) {
                         /* パーミッションエラー
                          Facebookの場合は設定.app内のアカウントのパスワードが入力されていない状態でも起こる */
-                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+                        completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                                    code:YSAccountStoreErrorTypePermissionDenied
                                                                userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"error: %@", error]}]);
                     } else if ([AFNetworkReachabilityManager sharedManager].isReachable &&
                                [[self.accountStore accountsWithAccountType:type] count] == 0) {
                         /* アカウントがゼロ */
-                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+                        completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                                    code:YSAccountStoreErrorTypeZeroAccount
                                                                userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"account.count == 0; error: %@;", error]}]);
                     } else {
                         NSLog(@"Unknown error: requestError && account.count > 0; error = %@;", error);
-                        completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+                        completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                                    code:YSAccountStoreErrorTypeUnknown
                                                                userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unknown error: %@", error]}]);
                     }
                 } else {
                     /* アクセスが許可されてない(Twitterへのアクセス禁止) */
                     NSLog(@"Error: Not access privacy; error = %@;", error);
-                    completion(nil, [[NSError alloc] initWithDomain:kYSAccountStoreErrorDomain
+                    completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
                                                                code:YSAccountStoreErrorTypePrivacyIsDisable
                                                            userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Not access privacy; error: %@;", error]}]);
                 }
