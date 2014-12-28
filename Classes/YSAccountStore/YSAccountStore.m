@@ -37,6 +37,8 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
     return self;
 }
 
+#pragma mark - Request
+
 - (void)requestAccessToTwitterAccountsWithCompletion:(YSAccountStoreAccessCompletion)completion
 {
     [self requestAccessToAccountsWithACAccountTypeIdentifier:ACAccountTypeIdentifierTwitter
@@ -83,8 +85,7 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
     
     __weak typeof(self) wself = self;
     [self.accountStore requestAccessToAccountsWithType:type options:options ? options : defaultOptions completion:^(BOOL granted, NSError *error) {
-        /* accountsを操作するのと、-accountsWithAccountType:がメインスレッドでないとaccountType==nilを返すので
-         メインスレッドで実行 */
+        // Not main thread.
         dispatch_async(dispatch_get_main_queue(), ^{
             if (granted) {
                 if (error == nil) {
@@ -134,6 +135,45 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
                                                            userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Not access privacy; error: %@;", error]}]);
                 }
             }
+        });
+    }];
+}
+
+#pragma mark - Edit
+
+- (void)addTwitterAccountWithAccessToken:(NSString *)token
+                                  secret:(NSString *)secret
+                              completion:(ACAccountStoreSaveCompletionHandler)completion
+{
+    ACAccount *account = [[ACAccount alloc] initWithAccountType:[self.accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter]];
+    account.credential = [[ACAccountCredential alloc] initWithOAuthToken:token tokenSecret:secret];
+    
+    [self.accountStore saveAccount:account withCompletionHandler:^(BOOL success, NSError *error) {
+        // Not main thread.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completion) completion(success, error);
+        });
+    }];
+}
+
+- (void)removeAccount:(ACAccount *)account
+       withCompletion:(ACAccountStoreRemoveCompletionHandler)completion
+{
+    [self.accountStore removeAccount:account withCompletionHandler:^(BOOL success, NSError *error) {
+        // Not main thread.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completion) completion(success, error);
+        });
+    }];
+}
+
+- (void)renewCredentialsForAccount:(ACAccount*)account
+                        completion:(ACAccountStoreCredentialRenewalHandler)completion
+{
+    [self.accountStore renewCredentialsForAccount:account completion:^(ACAccountCredentialRenewResult renewResult, NSError *error) {
+        // Not main thread.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completion) completion(renewResult, error);
         });
     }];
 }

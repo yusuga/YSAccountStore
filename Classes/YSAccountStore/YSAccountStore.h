@@ -33,11 +33,23 @@ typedef void(^YSAccountStoreAccessCompletion)(NSArray *accounts, NSError *error)
                                                     options:(NSDictionary*)options
                                                  completion:(YSAccountStoreAccessCompletion)completion;
 
-#pragma mark -
+#pragma mark - Request
 
 - (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId
                                                   appIdKey:(NSString*)appIdKey
                                                    options:(NSDictionary*)options
                                                 completion:(YSAccountStoreAccessCompletion)completion;
+
+#pragma mark - Edit
+
+- (void)addTwitterAccountWithAccessToken:(NSString *)token
+                                  secret:(NSString *)secret
+                              completion:(ACAccountStoreSaveCompletionHandler)completion;
+
+- (void)removeAccount:(ACAccount *)account
+       withCompletion:(ACAccountStoreRemoveCompletionHandler)completion;
+
+- (void)renewCredentialsForAccount:(ACAccount*)account
+                        completion:(ACAccountStoreCredentialRenewalHandler)completion;
 
 @end
