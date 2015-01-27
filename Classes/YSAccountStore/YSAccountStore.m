@@ -69,9 +69,8 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
     
     ACAccountType *type = [self.accountStore accountTypeWithAccountTypeIdentifier:typeId];
     if (type == nil) {
-        completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
-                                                   code:YSAccountStoreErrorCodeAccountTypeNil
-                                               userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unknown type identifier: %@", typeId]}]);
+        completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeAccountTypeNil
+                                          description:[NSString stringWithFormat:@"Unknown account type identifier = %@;", typeId]]);
         return;
     }
     NSDictionary *defaultOptions;
@@ -98,9 +97,8 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
                     }
                     completion(accounts, nil);
                 } else {
-                    completion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
-                                                               code:YSAccountStoreErrorCodeUnknown
-                                                           userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Unexpected error: granted == YES && error != nil; error: %@;", error]}]);
+                    completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeUnknown
+                                                      description:[NSString stringWithFormat:@"[Unknown error] granted == YES && error != nil; error = %@;", error]]);
                 }
             } else {
                 if (error) {
