@@ -12,5 +12,5 @@ Pod::Spec.new do |s|
   s.source_files = 'Classes/YSAccountStore/*.{h,m}'
   s.compiler_flags = '-fmodules'
     
-  s.dependency 'AFNetworking'
+  s.dependency 'AFNetworking/Reachability'
 end
