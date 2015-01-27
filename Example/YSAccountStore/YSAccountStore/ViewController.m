@@ -126,19 +126,19 @@
     
     NSString *errorStr;
     switch (error.code) {
-        case YSAccountStoreErrorTypeUnknown:
+        case YSAccountStoreErrorCodeUnknown:
             errorStr = @"不明なエラー";
             break;
-        case YSAccountStoreErrorTypeAccountTypeNil:
+        case YSAccountStoreErrorCodeAccountTypeNil:
             errorStr = @"AccountType == nil";
             break;
-        case YSAccountStoreErrorTypePrivacyIsDisable:
+        case YSAccountStoreErrorCodePrivacyIsDisable:
             errorStr = [NSString stringWithFormat:@"[設定]→[プライバシー]→[%@]がオフ", service];
             break;
-        case YSAccountStoreErrorTypeZeroAccount:
+        case YSAccountStoreErrorCodeZeroAccount:
             errorStr = [NSString stringWithFormat:@"[設定]→[%@]内のアカウントが1つも入力されていません", service];
             break;
-        case YSAccountStoreErrorTypePermissionDenied:
+        case YSAccountStoreErrorCodePermissionDenied:
             errorStr = @"パーミッションエラー";
             break;
         default:

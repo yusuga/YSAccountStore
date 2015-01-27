@@ -11,13 +11,13 @@
 
 extern NSString * const YSAccountStoreErrorDomain;
 
-typedef enum {
-    YSAccountStoreErrorTypeUnknown,
-    YSAccountStoreErrorTypeAccountTypeNil,
-    YSAccountStoreErrorTypePrivacyIsDisable,
-    YSAccountStoreErrorTypeZeroAccount,
-    YSAccountStoreErrorTypePermissionDenied,
-} YSAccountStoreErrorType;
+typedef NS_ENUM(NSInteger, YSAccountStoreErrorCode) {
+    YSAccountStoreErrorCodeUnknown,
+    YSAccountStoreErrorCodeAccountTypeNil,
+    YSAccountStoreErrorCodePrivacyIsDisable,
+    YSAccountStoreErrorCodeZeroAccount,
+    YSAccountStoreErrorCodePermissionDenied,
+};
 
 typedef void(^YSAccountStoreAccessCompletion)(NSArray *accounts, NSError *error);
 
