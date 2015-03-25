@@ -9,45 +9,59 @@
 #import <Foundation/Foundation.h>
 @import Accounts;
 
-extern NSString * const YSAccountStoreErrorDomain;
-
+extern NSString *YSAccountStoreErrorDomain;
 typedef NS_ENUM(NSInteger, YSAccountStoreErrorCode) {
-    YSAccountStoreErrorCodeUnknown,
-    YSAccountStoreErrorCodeAccountTypeNil,
-    YSAccountStoreErrorCodePrivacyIsDisable,
-    YSAccountStoreErrorCodeZeroAccount,
-    YSAccountStoreErrorCodePermissionDenied,
+    YSAccountStoreErrorCodeAdd,
 };
 
-typedef void(^YSAccountStoreAccessCompletion)(NSArray *accounts, NSError *error);
+extern NSString *ys_NSStringFromACErrorCode(NSInteger code);
+
+typedef void(^YSAccountStoreAccessCompletion)(NSArray *accounts, BOOL granted, NSError *error);
+typedef void(^YSAccountStoreFetchCompletion)(ACAccount *account, NSError *error);
 
 @interface YSAccountStore : NSObject
 
 + (instancetype)shardStore;
 
-#pragma mark - Simple request
-
-- (void)requestAccessToTwitterAccountsWithCompletion:(YSAccountStoreAccessCompletion)completion;
-
-- (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
-                                                    options:(NSDictionary*)options
-                                                 completion:(YSAccountStoreAccessCompletion)completion;
-
-#pragma mark - Request
+#pragma mark - Access
 
 - (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId
                                                   appIdKey:(NSString*)appIdKey
                                                    options:(NSDictionary*)options
                                                 completion:(YSAccountStoreAccessCompletion)completion;
 
+// Convenience
+- (void)requestAccessToTwitterAccountsWithCompletion:(YSAccountStoreAccessCompletion)completion;
+
+- (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
+                                                    options:(NSDictionary*)options
+                                                 completion:(YSAccountStoreAccessCompletion)completion;
+
 #pragma mark - Edit
+
+/**
+ *  Must get permission ago 'requestAccessToAccountsWithType:options:completion:'.
+ *
+ *  Privacy access is denied == ACErrorClientPermissionDenied
+ */
+
+/* Add */
 
 - (void)addTwitterAccountWithAccessToken:(NSString *)token
                                   secret:(NSString *)secret
                               completion:(ACAccountStoreSaveCompletionHandler)completion;
 
+- (void)addTwitterAccountWithAccessToken:(NSString *)token
+                                  secret:(NSString *)secret
+                                userName:(NSString *)userName
+                         fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion;
+
+/* Remove */
+
 - (void)removeAccount:(ACAccount *)account
        withCompletion:(ACAccountStoreRemoveCompletionHandler)completion;
+
+/* Renew */
 
 - (void)renewCredentialsForAccount:(ACAccount*)account
                         completion:(ACAccountStoreCredentialRenewalHandler)completion;

@@ -7,9 +7,70 @@
 //
 
 #import "YSAccountStore.h"
-#import <AFNetworking/AFNetworkReachabilityManager.h>
 
-NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
+NSString *YSAccountStoreErrorDomain = @"YSAccountStoreErrorDomain";
+
+/**
+ *  https://developer.apple.com/library/mac/documentation/Accounts/Reference/AccountsConstantsRef/#//apple_ref/c/tdef/ACErrorCode
+ *
+ *  typedef enum ACErrorCode {
+ *      ACErrorUnknown = 1,
+ *      ACErrorAccountMissingRequiredProperty,
+ *      ACErrorAccountAuthenticationFailed,
+ *      ACErrorAccountTypeInvalid,
+ *      ACErrorAccountAlreadyExists,
+ *      ACErrorAccountNotFound,
+ *      ACErrorPermissionDenied,
+ *      ACErrorAccessInfoInvalid,
+ *      ACErrorClientPermissionDenied
+ *      ACErrorAccessDeniedByProtectionPolicy
+ *      ACErrorCredentialNotFound
+ *      ACErrorFetchCredentialFailed,
+ *      ACErrorStoreCredentialFailed,
+ *      ACErrorRemoveCredentialFailed,
+ *      ACErrorUpdatingNonexistentAccount
+ *      ACErrorInvalidClientBundleID,
+ *  } ACErrorCode;
+ */
+
+NSString *ys_NSStringFromACErrorCode(NSInteger code) {
+    switch (code) {
+        case ACErrorUnknown:
+            return @"ACErrorUnknown";
+        case ACErrorAccountMissingRequiredProperty:
+            return @"ACErrorAccountMissingRequiredProperty";
+        case ACErrorAccountAuthenticationFailed:
+            return @"ACErrorAccountAuthenticationFailed";
+        case ACErrorAccountTypeInvalid:
+            return @"ACErrorAccountTypeInvalid";
+        case ACErrorAccountAlreadyExists:
+            return @"ACErrorAccountAlreadyExists";
+        case ACErrorAccountNotFound:
+            return @"ACErrorAccountNotFound";
+        case ACErrorPermissionDenied:
+            return @"ACErrorPermissionDenied";
+        case ACErrorAccessInfoInvalid:
+            return @"ACErrorAccessInfoInvalid";
+        case ACErrorClientPermissionDenied:
+            return @"ACErrorClientPermissionDenied";
+        case ACErrorAccessDeniedByProtectionPolicy:
+            return @"ACErrorAccessDeniedByProtectionPolicy";
+        case ACErrorCredentialNotFound:
+            return @"ACErrorCredentialNotFound";
+        case ACErrorFetchCredentialFailed:
+            return @"ACErrorFetchCredentialFailed";
+        case ACErrorStoreCredentialFailed:
+            return @"ACErrorStoreCredentialFailed";
+        case ACErrorRemoveCredentialFailed:
+            return @"ACErrorRemoveCredentialFailed";
+        case ACErrorUpdatingNonexistentAccount:
+            return @"ACErrorUpdatingNonexistentAccount";
+        case ACErrorInvalidClientBundleID:
+            return @"ACErrorInvalidClientBundleID";
+        default:
+            return [NSString stringWithFormat:@"Unknown ACErrorCode(%d)", code];
+    }
+};
 
 @interface YSAccountStore ()
 
@@ -49,7 +110,7 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
 
 - (void)requestAccessToFacebookAccountsWithFacebookAppIdKey:(NSString*)appIdKey
                                                     options:(NSDictionary*)options
-                                              completion:(YSAccountStoreAccessCompletion)completion
+                                                 completion:(YSAccountStoreAccessCompletion)completion
 {
     [self requestAccessToAccountsWithACAccountTypeIdentifier:ACAccountTypeIdentifierFacebook
                                                     appIdKey:appIdKey
@@ -60,75 +121,24 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
 - (void)requestAccessToAccountsWithACAccountTypeIdentifier:(NSString *)typeId
                                                   appIdKey:(NSString*)appIdKey
                                                    options:(NSDictionary*)options
-                                             completion:(YSAccountStoreAccessCompletion)completion
+                                                completion:(YSAccountStoreAccessCompletion)completion
 {
-    if (completion == NULL) {
-        NSAssert(0, @"completion is NULL");
-        return;
-    }
+    NSParameterAssert(completion);
     
     ACAccountType *type = [self.accountStore accountTypeWithAccountTypeIdentifier:typeId];
-    if (type == nil) {
-        completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeAccountTypeNil
-                                          description:[NSString stringWithFormat:@"Unknown account type identifier = %@;", typeId]]);
-        return;
-    }
     NSDictionary *defaultOptions;
     if ([typeId isEqualToString:ACAccountTypeIdentifierFacebook]) {
         // Example
         defaultOptions = @{ACFacebookAppIdKey : appIdKey,
-                    ACFacebookAudienceKey : ACFacebookAudienceOnlyMe,
-                    ACFacebookPermissionsKey : @[@"email"]
-                    };
+                           ACFacebookAudienceKey : ACFacebookAudienceOnlyMe,
+                           ACFacebookPermissionsKey : @[@"email"]
+                           };
     }
     
     __weak typeof(self) wself = self;
     [self.accountStore requestAccessToAccountsWithType:type options:options ? options : defaultOptions completion:^(BOOL granted, NSError *error) {
-        // Not main thread.
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (granted) {
-                if (error == nil) {
-                    NSArray *accounts = [wself.accountStore accountsWithAccountType:type];
-                    if ([accounts count] == 0) {
-                        /* Accounts is zero */
-                        completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeZeroAccount
-                                                          description:@"accounts.count is zero."]);
-                        return ;
-                    }
-                    completion(accounts, nil);
-                } else {
-                    completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeUnknown
-                                                      description:[NSString stringWithFormat:@"[Unknown error] granted == YES && error != nil; error = %@;", error]]);
-                }
-            } else {
-                if (error) {
-                    if (error.code == ACErrorPermissionDenied) {
-                        /**
-                         *  Permission error
-                         *  Facebookの場合は設定.app内のアカウントのパスワードが入力されていない状態でも起こる
-                         */
-                        completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodePermissionDenied
-                                                          description:[NSString stringWithFormat:@"error = %@", error]]);
-                    } else if ([AFNetworkReachabilityManager sharedManager].isReachable &&
-                               [[self.accountStore accountsWithAccountType:type] count] == 0) {
-                        /* Accounts is zero */
-                        completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeZeroAccount
-                                                          description:[NSString stringWithFormat:@"accounts.count is zero; error = %@;", error]]);
-                    } else {
-                        NSLog(@"[Unknown error] requestError && account.count > 0; error = %@;", error);
-                        completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodeUnknown
-                                                          description:[NSString stringWithFormat:@"Unknown error = %@;", error]]);
-                    }
-                } else {
-                    /** 
-                     *  Privacy is disable
-                     *  アクセスが許可されてない(Twitterへのアクセス禁止)
-                     */
-                    NSLog(@"[Error] Not access privacy; error = %@;", error);
-                    completion(nil, [YSAccountStore errorWithCode:YSAccountStoreErrorCodePrivacyIsDisable
-                                                      description:[NSString stringWithFormat:@"Not access privacy; error = %@;", error]]);
-                }
-            }
+            completion([wself.accountStore accountsWithAccountType:type], granted, error);
         });
     }];
 }
@@ -143,18 +153,56 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
     account.credential = [[ACAccountCredential alloc] initWithOAuthToken:token tokenSecret:secret];
     
     [self.accountStore saveAccount:account withCompletionHandler:^(BOOL success, NSError *error) {
-        // Not main thread.
         dispatch_async(dispatch_get_main_queue(), ^{
             if (completion) completion(success, error);
         });
     }];
 }
 
+- (void)addTwitterAccountWithAccessToken:(NSString *)token
+                                  secret:(NSString *)secret
+                                userName:(NSString *)userName
+                         fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion
+{
+    NSParameterAssert(token.length);
+    NSParameterAssert(secret.length);
+    NSParameterAssert(userName.length);
+    NSParameterAssert(fetchCompletion);
+    
+    __weak typeof(self) wself = self;
+    [self addTwitterAccountWithAccessToken:token
+                                    secret:secret
+                                completion:^(BOOL success, NSError *error)
+     {
+         if ((success && !error)
+             || ([error.domain isEqualToString:ACErrorDomain] && error.code == ACErrorAccountAlreadyExists))
+         {
+             [wself requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, BOOL granted, NSError *error) {
+                 ACAccount *addedAccount;
+                 for (ACAccount *account in accounts) {
+                     if ([account.username isEqualToString:userName]) {
+                         addedAccount = account;
+                         break;
+                     }
+                 }
+                 if (addedAccount) {
+                     fetchCompletion(addedAccount, nil);
+                 } else {
+                     fetchCompletion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
+                                                                     code:YSAccountStoreErrorCodeAdd
+                                                                 userInfo:@{NSLocalizedDescriptionKey : @"Unknown error. Please check the iOS settings app."}]);
+                 }
+             }];
+         } else {
+             fetchCompletion(nil, error);
+         }
+     }];
+}
+
 - (void)removeAccount:(ACAccount *)account
        withCompletion:(ACAccountStoreRemoveCompletionHandler)completion
 {
     [self.accountStore removeAccount:account withCompletionHandler:^(BOOL success, NSError *error) {
-        // Not main thread.
         dispatch_async(dispatch_get_main_queue(), ^{
             if (completion) completion(success, error);
         });
@@ -165,22 +213,10 @@ NSString * const YSAccountStoreErrorDomain = @"jp.YuSugawara.YSAccountStore";
                         completion:(ACAccountStoreCredentialRenewalHandler)completion
 {
     [self.accountStore renewCredentialsForAccount:account completion:^(ACAccountCredentialRenewResult renewResult, NSError *error) {
-        // Not main thread.
         dispatch_async(dispatch_get_main_queue(), ^{
             if (completion) completion(renewResult, error);
         });
     }];
 }
-
-#pragma mark - Error
-
-+ (NSError*)errorWithCode:(NSInteger)code
-              description:(NSString*)description
-{
-    return [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
-                                      code:code
-                                  userInfo:description ? @{NSLocalizedDescriptionKey : description} : nil];
-}
-
 
 @end
