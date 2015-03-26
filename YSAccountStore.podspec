@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'YSAccountStore'
-  s.version = '0.0.11'
+  s.version = '0.1.0'
   s.summary = 'Helper of ACAccount.'
   s.homepage = 'https://github.com/yusuga/YSAccountStore'
   s.license = 'MIT'
@@ -11,6 +11,4 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.source_files = 'Classes/YSAccountStore/*.{h,m}'
   s.compiler_flags = '-fmodules'
-    
-  s.dependency 'AFNetworking/Reachability'
 end
