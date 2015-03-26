@@ -13,48 +13,60 @@
 
 @property (nonatomic) NSMutableArray *accounts;
 
+@property (nonatomic, copy) NSString *userName;
+@property (nonatomic, copy) NSString *accessToken;
+@property (nonatomic, copy) NSString *accessTokenSecret;
+
 @end
 
 @implementation ViewController
-
-- (id)initWithStyle:(UITableViewStyle)style
-{
-    self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
-
-- (void)awakeFromNib
-{
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(applicationDidBecomeActiveNotification:)
-                                                 name:UIApplicationDidBecomeActiveNotification
-                                               object:nil];
-}
-
-- (void)dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver: self];
-}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
-    [self updateAccounts];
+#warning Please enter each token. https://apps.twitter.com/app/
+    self.userName = @"";
+    self.accessToken = @"";
+    self.accessTokenSecret = @"";
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(accountStoreDidChangeNotification:)
+                                                 name:ACAccountStoreDidChangeNotification
+                                               object:nil];
+    
+//    [self updateAccounts];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)updateAccounts
 {
     __weak typeof(self) wself = self;
-    [[YSAccountStore shardStore] requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, NSError *error) {
+    [[YSAccountStore shardStore] requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, BOOL granted, NSError *error) {
         if (error) {
-            [wself showErrorAlertWithACAccountTypeIdentifier:ACAccountTypeIdentifierTwitter error:error];
-            return ;
+            [wself showErrorAlertWithError:error];
+            wself.accounts = nil;
+        } else if (!granted) {
+            [[[UIAlertView alloc] initWithTitle:@"Privacy access is denied"
+                                       message:nil
+                                      delegate:nil
+                             cancelButtonTitle:@"OK"
+                              otherButtonTitles:nil] show];
+            wself.accounts = nil;
+        } else if (![accounts count]) {
+            [[[UIAlertView alloc] initWithTitle:@"Accounts is zero"
+                                        message:nil
+                                       delegate:nil
+                              cancelButtonTitle:@"OK"
+                              otherButtonTitles:nil] show];
+            wself.accounts = nil;
+        } else {
+            wself.accounts = [accounts mutableCopy];
         }
-        wself.accounts = [accounts mutableCopy];
         [wself.tableView reloadData];
     }];
 }
@@ -82,7 +94,7 @@
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     ACAccount *account = [self.accounts objectAtIndex:indexPath.row];
-    NSLog(@"%@", account);
+    NSLog(@"account = %@", account);
     [[[UIAlertView alloc] initWithTitle:account.username
                                 message:account.description
                                delegate:nil
@@ -101,90 +113,102 @@
                 [wself.accounts removeObject:account];
                 [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
             } else {
-                [[[UIAlertView alloc] initWithTitle:@"Remove error"
-                                            message:error.description
-                                           delegate:nil
-                                  cancelButtonTitle:@"OK"
-                                  otherButtonTitles:nil] show];
+                [wself showErrorAlertWithError:error];
             }
         }];
     }
-}
-
-#pragma mark - Error
-
-- (void)showErrorAlertWithACAccountTypeIdentifier:(NSString*)typeId error:(NSError*)error
-{
-    NSString *service;
-    if ([ACAccountTypeIdentifierTwitter isEqualToString:typeId]) {
-        service = @"Twitter";
-    } else if ([ACAccountTypeIdentifierFacebook isEqualToString:typeId]) {
-        service = @"Facebook";
-    } else {
-        service = @"Other service";
-    }
-    
-    NSString *errorStr;
-    switch (error.code) {
-        case YSAccountStoreErrorCodeUnknown:
-            errorStr = @"不明なエラー";
-            break;
-        case YSAccountStoreErrorCodeAccountTypeNil:
-            errorStr = @"AccountType == nil";
-            break;
-        case YSAccountStoreErrorCodePrivacyIsDisable:
-            errorStr = [NSString stringWithFormat:@"[設定]→[プライバシー]→[%@]がオフ", service];
-            break;
-        case YSAccountStoreErrorCodeZeroAccount:
-            errorStr = [NSString stringWithFormat:@"[設定]→[%@]内のアカウントが1つも入力されていません", service];
-            break;
-        case YSAccountStoreErrorCodePermissionDenied:
-            errorStr = @"パーミッションエラー";
-            break;
-        default:
-            abort();
-            return;
-    }
-    
-    [[[UIAlertView alloc] initWithTitle:service message:errorStr delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
 }
 
 #pragma mark - Button
 
 - (IBAction)addButtonDidPush:(id)sender
 {
-    // https://apps.twitter.com/app/
-    NSString *accessToken = @"";
-    NSString *accessTokenSecret = @"";
+    if (![self checkAccessTokens]) return;
     
-    if (accessToken.length == 0 || accessTokenSecret == 0) {
-        [[[UIAlertView alloc] initWithTitle:@"Token has not been entered."
-                                    message:nil
-                                   delegate:nil
-                          cancelButtonTitle:@"OK"
+    __weak typeof(self) wself = self;
+    [[YSAccountStore shardStore] addTwitterAccountWithAccessToken:self.accessToken
+                                                           secret:self.accessTokenSecret
+                                                       completion:^(BOOL success, NSError *error)
+     {
+         if (success) {
+             [wself updateAccounts];
+         } else {
+             [self showErrorAlertWithError:error];
+         }
+     }];
+}
+
+- (IBAction)addAndFetchButtonDidPush:(id)sender
+{
+    if (![self checkAccessTokens]) return;
+    if (!self.userName.length) {
+        [[[UIAlertView alloc] initWithTitle:@"self.userName.length == 0"
+                                   message:nil
+                                  delegate:nil
+                         cancelButtonTitle:@"OK"
                           otherButtonTitles:nil] show];
         return;
     }
     
     __weak typeof(self) wself = self;
-    [[YSAccountStore shardStore] addTwitterAccountWithAccessToken:accessToken secret:accessTokenSecret completion:^(BOOL success, NSError *error) {
-        if (success) {
-            [wself updateAccounts];
-        } else {
-            [[[UIAlertView alloc] initWithTitle:@"Add error"
-                                        message:error.description
-                                       delegate:nil
-                              cancelButtonTitle:@"OK"
-                              otherButtonTitles:nil] show];
-        }
-    }];
+    [[YSAccountStore shardStore] addTwitterAccountWithAccessToken:self.accessToken
+                                                           secret:self.accessTokenSecret
+                                                         userName:self.userName
+                                                  fetchCompletion:^(ACAccount *account, NSError *error)
+     {
+         if (error) {
+             [self showErrorAlertWithError:error];
+         } else {
+             NSLog(@"%s; account = %@;", __func__, account);
+             [wself updateAccounts];
+         }
+     }];
+}
+
+- (IBAction)refreshButtonDidPush:(id)sender
+{
+    [self updateAccounts];
 }
 
 #pragma mark - Notification
 
-- (void)applicationDidBecomeActiveNotification:(NSNotification*)notification
+- (void)accountStoreDidChangeNotification:(NSNotification*)notification
 {
+    NSLog(@"%s", __func__);
     [self updateAccounts];
+}
+
+#pragma mark - Utility
+
+- (BOOL)checkAccessTokens
+{
+    if (self.accessToken.length && self.accessTokenSecret.length) {
+        return YES;
+    }
+    
+    [[[UIAlertView alloc] initWithTitle:@"Token has not been entered."
+                                message:nil
+                               delegate:nil
+                      cancelButtonTitle:@"OK"
+                      otherButtonTitles:nil] show];
+    return NO;
+}
+
+- (void)showErrorAlertWithError:(NSError*)error
+{
+    if ([error.domain isEqualToString:ACErrorDomain]) {
+        [[[UIAlertView alloc] initWithTitle:ys_NSStringFromACErrorCode(error.code)
+                                    message:error.localizedDescription
+                                   delegate:nil
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Error"
+                                   message:error.localizedDescription
+                                  delegate:nil
+                         cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    }
 }
 
 @end
