@@ -13,7 +13,7 @@
 
 @property (nonatomic) NSMutableArray *accounts;
 
-@property (nonatomic, copy) NSString *userName;
+@property (nonatomic, copy) NSString *userID;
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSString *accessTokenSecret;
 
@@ -26,7 +26,7 @@
     [super viewDidLoad];
     
 #warning Please enter each token. https://apps.twitter.com/app/
-    self.userName = @"";
+    self.userID = @"";
     self.accessToken = @"";
     self.accessTokenSecret = @"";
     
@@ -141,8 +141,8 @@
 - (IBAction)addAndFetchButtonDidPush:(id)sender
 {
     if (![self checkAccessTokens]) return;
-    if (!self.userName.length) {
-        [[[UIAlertView alloc] initWithTitle:@"self.userName.length == 0"
+    if (!self.userID.length) {
+        [[[UIAlertView alloc] initWithTitle:@"self.userID.length == 0"
                                    message:nil
                                   delegate:nil
                          cancelButtonTitle:@"OK"
@@ -151,10 +151,10 @@
     }
     
     __weak typeof(self) wself = self;
-    [[YSAccountStore shardStore] addTwitterAccountWithAccessToken:self.accessToken
-                                                           secret:self.accessTokenSecret
-                                                         userName:self.userName
-                                                  fetchCompletion:^(ACAccount *account, NSError *error)
+    [[YSAccountStore shardStore] addAndFetchTwitterAccountWithAccessToken:self.accessToken
+                                                                   secret:self.accessTokenSecret
+                                                                   userID:self.userID
+                                                          fetchCompletion:^(ACAccount *account, NSError *error)
      {
          if (error) {
              [self showErrorAlertWithError:error];

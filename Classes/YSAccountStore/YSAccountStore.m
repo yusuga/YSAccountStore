@@ -68,7 +68,7 @@ NSString *ys_NSStringFromACErrorCode(NSInteger code) {
         case ACErrorInvalidClientBundleID:
             return @"ACErrorInvalidClientBundleID";
         default:
-            return [NSString stringWithFormat:@"Unknown ACErrorCode(%d)", code];
+            return [NSString stringWithFormat:@"Unknown ACErrorCode(%zd)", code];
     }
 };
 
@@ -159,14 +159,14 @@ NSString *ys_NSStringFromACErrorCode(NSInteger code) {
     }];
 }
 
-- (void)addTwitterAccountWithAccessToken:(NSString *)token
-                                  secret:(NSString *)secret
-                                userName:(NSString *)userName
-                         fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion
+- (void)addAndFetchTwitterAccountWithAccessToken:(NSString *)token
+                                          secret:(NSString *)secret
+                                          userID:(NSString *)userID
+                                 fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion
 {
     NSParameterAssert(token.length);
     NSParameterAssert(secret.length);
-    NSParameterAssert(userName.length);
+    NSParameterAssert(userID.length);
     NSParameterAssert(fetchCompletion);
     
     __weak typeof(self) wself = self;
@@ -180,7 +180,8 @@ NSString *ys_NSStringFromACErrorCode(NSInteger code) {
              [wself requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, BOOL granted, NSError *error) {
                  ACAccount *addedAccount;
                  for (ACAccount *account in accounts) {
-                     if ([account.username isEqualToString:userName]) {
+                     NSString *accountUserID = [account valueForKeyPath:@"properties.user_id"];
+                     if ([accountUserID isKindOfClass:[NSString class]] && [accountUserID isEqualToString:userID]) {
                          addedAccount = account;
                          break;
                      }

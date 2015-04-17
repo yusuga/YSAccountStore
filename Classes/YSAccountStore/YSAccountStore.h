@@ -51,10 +51,10 @@ typedef void(^YSAccountStoreFetchCompletion)(ACAccount *account, NSError *error)
                                   secret:(NSString *)secret
                               completion:(ACAccountStoreSaveCompletionHandler)completion;
 
-- (void)addTwitterAccountWithAccessToken:(NSString *)token
-                                  secret:(NSString *)secret
-                                userName:(NSString *)userName
-                         fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion;
+- (void)addAndFetchTwitterAccountWithAccessToken:(NSString *)token
+                                          secret:(NSString *)secret
+                                          userID:(NSString *)userID
+                                 fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion;
 
 /* Remove */
 
