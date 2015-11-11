@@ -56,6 +56,10 @@ typedef void(^YSAccountStoreFetchCompletion)(ACAccount *account, NSError *error)
                                           userID:(NSString *)userID
                                  fetchCompletion:(YSAccountStoreFetchCompletion)fetchCompletion;
 
+/* Fetch */
+
+- (ACAccount *)fetchTwitterAccountWithAccountID:(NSString *)accountID;
+
 /* Remove */
 
 - (void)removeAccount:(ACAccount *)account

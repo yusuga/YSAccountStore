@@ -17,6 +17,8 @@
 @property (nonatomic, copy) NSString *accessToken;
 @property (nonatomic, copy) NSString *accessTokenSecret;
 
+@property (weak, nonatomic) IBOutlet UISwitch *fetchSwitch;
+
 @end
 
 @implementation ViewController
@@ -94,12 +96,23 @@
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     ACAccount *account = [self.accounts objectAtIndex:indexPath.row];
-    NSLog(@"account = %@", account);
-    [[[UIAlertView alloc] initWithTitle:account.username
-                                message:account.description
-                               delegate:nil
-                      cancelButtonTitle:@"OK"
-                      otherButtonTitles:nil] show];
+    
+    if (self.fetchSwitch.on) {
+        ACAccount *fetchedAccount = [[YSAccountStore shardStore] fetchTwitterAccountWithAccountID:account.identifier];
+        NSLog(@"fetchdAccount = %@", fetchedAccount);
+        [[[UIAlertView alloc] initWithTitle:fetchedAccount.username
+                                    message:fetchedAccount.description
+                                   delegate:nil
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    } else {
+        NSLog(@"account = %@", account);
+        [[[UIAlertView alloc] initWithTitle:account.username
+                                    message:account.description
+                                   delegate:nil
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    }
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath

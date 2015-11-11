@@ -200,6 +200,11 @@ NSString *ys_NSStringFromACErrorCode(NSInteger code) {
      }];
 }
 
+- (ACAccount *)fetchTwitterAccountWithAccountID:(NSString *)accountID
+{
+    return [self.accountStore accountWithIdentifier:accountID];
+}
+
 - (void)removeAccount:(ACAccount *)account
        withCompletion:(ACAccountStoreRemoveCompletionHandler)completion
 {
