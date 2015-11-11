@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'YSAccountStore'
-  s.version = '0.1.1'
+  s.version = '0.1.2'
   s.summary = 'Helper of ACAccount.'
   s.homepage = 'https://github.com/yusuga/YSAccountStore'
   s.license = 'MIT'
