@@ -147,14 +147,22 @@ NSString *ys_NSStringFromACErrorCode(NSInteger code) {
 
 - (void)addTwitterAccountWithAccessToken:(NSString *)token
                                   secret:(NSString *)secret
-                              completion:(ACAccountStoreSaveCompletionHandler)completion
+                              completion:(YSAccountStoreAddCompletion)completion
 {
     ACAccount *account = [[ACAccount alloc] initWithAccountType:[self.accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter]];
     account.credential = [[ACAccountCredential alloc] initWithOAuthToken:token tokenSecret:secret];
     
     [self.accountStore saveAccount:account withCompletionHandler:^(BOOL success, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (completion) completion(success, error);
+            NSError *returnedError = nil;
+            if (error &&
+                [error.domain isEqualToString:ACErrorDomain] &&
+                error.code != ACErrorAccountAlreadyExists)
+            {
+                returnedError = error;
+            }
+            
+            if (completion) completion(returnedError);
         });
     }];
 }
@@ -172,31 +180,30 @@ NSString *ys_NSStringFromACErrorCode(NSInteger code) {
     __weak typeof(self) wself = self;
     [self addTwitterAccountWithAccessToken:token
                                     secret:secret
-                                completion:^(BOOL success, NSError *error)
+                                completion:^(NSError *error)
      {
-         if ((success && !error)
-             || ([error.domain isEqualToString:ACErrorDomain] && error.code == ACErrorAccountAlreadyExists))
-         {
-             [wself requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, BOOL granted, NSError *error) {
-                 ACAccount *addedAccount;
-                 for (ACAccount *account in accounts) {
-                     NSString *accountUserID = [account valueForKeyPath:@"properties.user_id"];
-                     if ([accountUserID isKindOfClass:[NSString class]] && [accountUserID isEqualToString:userID]) {
-                         addedAccount = account;
-                         break;
-                     }
-                 }
-                 if (addedAccount) {
-                     fetchCompletion(addedAccount, nil);
-                 } else {
-                     fetchCompletion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
-                                                                     code:YSAccountStoreErrorCodeAdd
-                                                                 userInfo:@{NSLocalizedDescriptionKey : @"Unknown error. Please check the iOS settings app."}]);
-                 }
-             }];
-         } else {
+         if (error) {
              fetchCompletion(nil, error);
+             return ;
          }
+         
+         [wself requestAccessToTwitterAccountsWithCompletion:^(NSArray *accounts, BOOL granted, NSError *error) {
+             ACAccount *addedAccount;
+             for (ACAccount *account in accounts) {
+                 NSString *accountUserID = [account valueForKeyPath:@"properties.user_id"];
+                 if ([accountUserID isKindOfClass:[NSString class]] && [accountUserID isEqualToString:userID]) {
+                     addedAccount = account;
+                     break;
+                 }
+             }
+             if (addedAccount) {
+                 fetchCompletion(addedAccount, nil);
+             } else {
+                 fetchCompletion(nil, [[NSError alloc] initWithDomain:YSAccountStoreErrorDomain
+                                                                 code:YSAccountStoreErrorCodeAdd
+                                                             userInfo:@{NSLocalizedDescriptionKey : @"Unknown error. Please check the iOS settings app."}]);
+             }
+         }];
      }];
 }
 

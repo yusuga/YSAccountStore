@@ -141,12 +141,12 @@
     __weak typeof(self) wself = self;
     [[YSAccountStore shardStore] addTwitterAccountWithAccessToken:self.accessToken
                                                            secret:self.accessTokenSecret
-                                                       completion:^(BOOL success, NSError *error)
+                                                       completion:^(NSError *error)
      {
-         if (success) {
-             [wself updateAccounts];
-         } else {
+         if (error) {
              [self showErrorAlertWithError:error];
+         } else {
+             [wself updateAccounts];
          }
      }];
 }

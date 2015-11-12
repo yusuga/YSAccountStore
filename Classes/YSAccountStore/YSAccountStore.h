@@ -17,6 +17,7 @@ typedef NS_ENUM(NSInteger, YSAccountStoreErrorCode) {
 extern NSString *ys_NSStringFromACErrorCode(NSInteger code);
 
 typedef void(^YSAccountStoreAccessCompletion)(NSArray *accounts, BOOL granted, NSError *error);
+typedef void(^YSAccountStoreAddCompletion)(NSError *error);
 typedef void(^YSAccountStoreFetchCompletion)(ACAccount *account, NSError *error);
 
 @interface YSAccountStore : NSObject
@@ -49,7 +50,7 @@ typedef void(^YSAccountStoreFetchCompletion)(ACAccount *account, NSError *error)
 
 - (void)addTwitterAccountWithAccessToken:(NSString *)token
                                   secret:(NSString *)secret
-                              completion:(ACAccountStoreSaveCompletionHandler)completion;
+                              completion:(YSAccountStoreAddCompletion)completion;
 
 - (void)addAndFetchTwitterAccountWithAccessToken:(NSString *)token
                                           secret:(NSString *)secret
